@@ -1,40 +1,70 @@
-import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
+"use client";
 
-export default function DashboardPage() {
-  return (
-    <main className="min-h-screen bg-gray-100 p-6">
-      <div className="mx-auto max-w-5xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Recon IQ</h1>
-            <p className="text-gray-600">Dashboard</p>
+import React from "react";
+import { useRouter } from "next/navigation";
+import { useClerk, useUser } from "@clerk/nextjs";
+
+// ✅ Import your existing login UI component if you have one
+// import ClientFlowLogin from "@/components/ClientFlowLogin";
+
+export default function Page() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
+
+  if (!isLoaded) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <div className="text-sm text-gray-600">Loading…</div>
+      </main>
+    );
+  }
+
+  // ✅ If already signed in, show "continue" + "sign out" (so they can switch accounts)
+  if (isSignedIn) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-2xl font-bold mb-2">You’re already signed in</h1>
+          <p className="text-gray-600 mb-6">
+            Signed in as <span className="font-medium">{user?.primaryEmailAddress?.emailAddress}</span>
+          </p>
+
+          <div className="space-y-3">
+            <button
+              className="w-full bg-black text-white py-2 rounded"
+              onClick={() => router.push("/dashboard")}
+            >
+              Continue to Dashboard
+            </button>
+
+            <button
+              className="w-full border py-2 rounded"
+              onClick={async () => {
+                await signOut({ redirectUrl: "/" });
+              }}
+            >
+              Sign out and use a different email
+            </button>
           </div>
-          <UserButton afterSignOutUrl="/" />
         </div>
+      </main>
+    );
+  }
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <Link
-            href="/dashboard/intake"
-            className="bg-white rounded-lg shadow p-5 hover:shadow-md transition"
-          >
-            <div className="text-lg font-semibold">Client Intake</div>
-            <div className="text-sm text-gray-600 mt-1">
-              Add/update your contact + property info.
-            </div>
-          </Link>
+  // ✅ Not signed in → render your actual login flow
+  return (
+    <>
+      {/* OPTION A: if your login flow is a component */}
+      {/* <ClientFlowLogin /> */}
 
-          <Link
-            href="/dashboard/schedule"
-            className="bg-white rounded-lg shadow p-5 hover:shadow-md transition"
-          >
-            <div className="text-lg font-semibold">Schedule</div>
-            <div className="text-sm text-gray-600 mt-1">
-              Month calendar with job boxes.
-            </div>
-          </Link>
+      {/* OPTION B: paste your existing login UI here (email/code flow) */}
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-2xl font-bold mb-2">Login</h1>
+          <p className="text-gray-600">Paste your email/code login UI here.</p>
         </div>
       </div>
-    </main>
+    </>
   );
 }
